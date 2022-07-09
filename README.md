@@ -10,3 +10,8 @@ If you have a [Docker](https://www.docker.com/) environment, we strongly recomme
 ```shell
 docker pull registry.cn-hangzhou.aliyuncs.com/em_seg/v54_higra
 ```
+
+
+## Contact
+
+If you have any problem with the released code, please contact me by email (liuxyu@mail.ustc.edu.cn).
