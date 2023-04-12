@@ -15,6 +15,6 @@ The related [pretrained models](https://drive.google.com/drive/folders/1XigH3QVA
 
 
 ## Contact
-This repo is related to knowledge distillation, and please refer to [repo](https://github.com/weih527/Pixel-Embedded-Affinity) for network training details without KD. 
+This repo is only related to knowledge distillation, and please refer to [repo](https://github.com/weih527/Pixel-Embedded-Affinity) for network training details without KD. 
 
 If you have any problem with the released code, please contact me by email (liuxyu@mail.ustc.edu.cn).
