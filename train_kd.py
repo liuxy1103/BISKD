@@ -199,6 +199,10 @@ def loop(cfg, train_provider, valid_provider, model, model_T, criterion, optimiz
     sum_loss_graph = 0.0
     sum_loss_node = 0.0
     sum_loss_edge = 0.0
+    sum_loss_CI_affinity = 0.0
+    sum_loss_CI_graph = 0.0
+    sum_loss_CI_node = 0.0
+    sum_loss_CI_edge = 0.0
     sum_loss_mask = 0.0
     device = torch.device('cuda:0')
     offsets = multi_offset(list(cfg.DATA.shifts), neighbor=cfg.DATA.neighbor)
@@ -319,14 +323,6 @@ def loop(cfg, train_provider, valid_provider, model, model_T, criterion, optimiz
             loss_node = loss_node + loss_node_tmp
             loss_edge = loss_edge + loss_edge_tmp
             loss_aff_KD = loss_aff_KD + loss_aff_KD_tmp
-
-
-        h_list, edge_list = construct_graph(target_ins, [embedding], if_adjacent=cfg.TRAIN.if_neighbor)
-        
-        h_list_T, edge_list_T = construct_graph(target_ins, [embedding_T])
-
-        h_list_this, edge_list_this = construct_graph(this_target_ins, [this_embedding], if_adjacent=cfg.TRAIN.if_neighbor)
-
 
 
         loss = loss_aff + loss_aff_KD + loss_graph 
