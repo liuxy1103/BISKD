@@ -356,8 +356,8 @@ def loop(cfg, train_provider, valid_provider, model, model_T, criterion, optimiz
             rcd_time.append(sum_time)
             if iters == 1:
                 logging.info(
-                    'step %d, loss=%.6f, loss_aff=%.6f,loss_affinity=%.6f,loss_graph=%.6f, loss_node=%.6f, loss_edge=%.6f, loss_CI_affinity=%6f, loss_CI_graph=%6f, loss_CI_node=%6f, loss_CI_edge=%6f (wt: *1, lr: %.8f, et: %.2f sec, rd: %.2f min)'
-                    % (iters, sum_loss, sum_loss_aff, sum_loss_affinity,sum_loss_graph,sum_loss_node, sum_loss_edge, sum_loss_CI_affinity, sum_loss_CI_graph, sum_loss_CI_node, sum_loss_CI_edge, current_lr, sum_time,
+                    'step %d, loss=%.6f, loss_aff=%.6f,loss_affinity=%.6f,loss_graph=%.6f, loss_node=%.6f, loss_edge=%.6f (wt: *1, lr: %.8f, et: %.2f sec, rd: %.2f min)'
+                    % (iters, sum_loss, sum_loss_aff, sum_loss_affinity,sum_loss_graph,sum_loss_node, sum_loss_edge, current_lr, sum_time,
                        (cfg.TRAIN.total_iters - iters) / cfg.TRAIN.display_freq * np.mean(np.asarray(rcd_time)) / 60))
                 writer.add_scalar('loss', sum_loss, iters)
 
@@ -394,102 +394,6 @@ def loop(cfg, train_provider, valid_provider, model, model_T, criterion, optimiz
             sum_loss_node = 0.0
             sum_loss_edge = 0.0
             sum_loss_mask = 0.0
-        # display
-        if iters % cfg.TRAIN.valid_freq == 0 or iters == 1:
-            show_affs(iters, batch_data['image'], pred[:, -1], batch_data['affs'][:, -1], cfg.cache_path)
-
-        # valid
-        if cfg.TRAIN.if_valid:
-            if iters % cfg.TRAIN.save_freq == 0 or iters == 1:
-                device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-                model.eval()
-                dataloader = torch.utils.data.DataLoader(valid_provider, batch_size=1, num_workers=0,
-                                                         shuffle=False, drop_last=False, pin_memory=True)
-                losses_valid = []
-                dice = []
-                diff = []
-                all_voi = []
-                all_arand = []
-                all_mse = []
-                all_bce = []
-                for k, batch in enumerate(dataloader, 0):
-                    batch_data = batch
-                    inputs = batch_data['image'].cuda()
-                    target = batch_data['affs'].cuda()
-                    weightmap = batch_data['wmap'].cuda()
-                    target_ins = batch_data['seg'].cuda().float()
-                    affs_mask = batch_data['mask'].cuda().float()
-                    with torch.no_grad():
-                        x5, x_emb1, x_emb2, x_emb3, embedding, _ = model(inputs)
-
-                    loss_embedding, pred, _ = embedding_loss(embedding, target, weightmap, affs_mask, criterion,
-                                                             offsets, affs0_weight=cfg.TRAIN.dis_weight)
-                    tmp_loss = loss_embedding
-                    losses_valid.append(tmp_loss.item())
-                    # pred = F.relu(pred)
-                    temp_mse = valid_mse(pred * affs_mask, target * affs_mask)
-                    temp_bce = valid_bce(torch.clamp(pred, 0.0, 1.0) * affs_mask, target * affs_mask)
-                    all_mse.append(temp_mse.item())
-                    all_bce.append(temp_bce.item())
-                    out_affs = np.squeeze(pred.data.cpu().numpy())
-
-                    # post-processing
-                    gt_ins = np.squeeze(batch_data['seg'].numpy()).astype(np.uint8)
-                    gt_mask = gt_ins.copy()
-                    gt_mask[gt_mask != 0] = 1
-                    if cfg.TEST.if_mutex == True:
-                        pred_seg = seg_mutex(out_affs, offsets=offsets, strides=list(cfg.DATA.strides),
-                                             mask=gt_mask).astype(np.uint16)
-                        print('PostPorcess mode: Embedding2Affinity-Mutex')
-                    else:
-                        embedding_np = np.squeeze(embedding.data.cpu().numpy())
-                        pred_seg = cluster_ms(embedding_np, bandwidth=0.5, semantic_mask=gt_mask).astype(np.uint16)
-
-                    pred_seg = merge_func(pred_seg)
-                    pred_seg = relabel(pred_seg)
-                    pred_seg = pred_seg.astype(np.uint16)
-                    gt_ins = gt_ins.astype(np.uint16)
-
-                    # evaluate
-                    temp_dice = SymmetricBestDice(pred_seg, gt_ins)
-                    temp_diff = AbsDiffFGLabels(pred_seg, gt_ins)
-                    arand = adapted_rand_ref(gt_ins, pred_seg, ignore_labels=(0))[0]
-                    voi_split, voi_merge = voi_ref(gt_ins, pred_seg, ignore_labels=(0))
-                    voi_sum = voi_split + voi_merge
-                    all_voi.append(voi_sum)
-                    all_arand.append(arand)
-                    dice.append(temp_dice)
-                    diff.append(temp_diff)
-                    if k == 0:
-                        affs_gt = batch_data['affs'].numpy()[0, -1]
-                        val_show(iters, out_affs[-1], affs_gt, pred_seg, gt_ins, cfg.valid_path)
-                epoch_loss = sum(losses_valid) / len(losses_valid)
-                sbd = sum(dice) / len(dice)
-                # sbd = 0.0
-                dic = sum(diff) / len(diff)
-                mean_voi = sum(all_voi) / len(all_voi)
-                mean_arand = sum(all_arand) / len(all_arand)
-                mean_mse = sum(all_mse) / len(all_mse)
-                mean_bce = sum(all_bce) / len(all_bce)
-
-                # out_affs[out_affs <= 0.5] = 0
-                # out_affs[out_affs > 0.5] = 1
-                # whole_f1 = f1_score(1 - gt_affs.astype(np.uint8).flatten(), 1 - out_affs.astype(np.uint8).flatten())
-                print('model-%d, valid-loss=%.6f, SBD=%.6f, DiC=%.6f, VOI=%.6f, ARAND=%.6f, MSE=%.6f, BCE=%.6f' % \
-                      (iters, epoch_loss, sbd, dic, mean_voi, mean_arand, mean_mse, mean_bce), flush=True)
-                writer.add_scalar('valid/epoch_loss', epoch_loss, iters)
-                writer.add_scalar('valid/SBD', sbd, iters)
-                writer.add_scalar('valid/DiC', dic, iters)
-                writer.add_scalar('valid/VOI', mean_voi, iters)
-                writer.add_scalar('valid/ARAND', mean_arand, iters)
-                writer.add_scalar('valid/MSE', mean_mse, iters)
-                writer.add_scalar('valid/BCE', mean_bce, iters)
-                f_valid_txt.write(
-                    'model-%d, valid-loss=%.6f, SBD=%.6f, DiC=%.6f, VOI=%.6f, ARAND=%.6f, MSE=%.6f, BCE=%.6f' % \
-                    (iters, epoch_loss, sbd, dic, mean_voi, mean_arand, mean_mse, mean_bce))
-                f_valid_txt.write('\n')
-                f_valid_txt.flush()
-                torch.cuda.empty_cache()
 
         # save
         if iters % cfg.TRAIN.save_freq == 0:
