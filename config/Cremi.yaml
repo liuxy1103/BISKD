@@ -1,0 +1,111 @@
+NAME: 'Cremi'
+
+MODEL:
+    model_type: 'mala'  # 'mala' or 'superhuman'
+    input_nc: 1
+    output_nc: 3
+    emd: 16
+    if_sigmoid: True
+    # for 'mala':
+    init_mode_mala: 'kaiming'
+    # for 'superhuman':
+    if_skip: 'False'
+    filters: 
+        - 28
+        - 36
+        - 48
+        - 64
+        - 80
+    upsample_mode: 'bilinear'  # 'bilinear', 'nearest', 'transpose', 'transposeS'
+    decode_ratio: 1
+    merge_mode: 'add'  # 'add', 'cat'
+    pad_mode: 'zero'  # 'zero', 'replicate'
+    bn_mode: 'async'  # 'sync', 'async'
+    relu_mode: 'elu'  # 'elu', 'relu', 'leaky'
+    init_mode: 'kaiming_normal'  # 'kaiming_normal', 'kaiming_uniform', 'xavier_normal', 'xavier_uniform'
+    
+    pre_train: False
+    trained_gpus: 1
+    pre_train_mode: 'finetune'  # 'finetune', 'extract_feature'
+
+TRAIN:
+    resume: False
+    if_valid: True
+    if_seg: True
+    if_KD: True
+    if_neighbor: False
+    model_T_id: 
+    model_T_path: 'teacher_network'
+    cache_path: '../caches_extension/'
+    save_path: '../models_extension/'
+    pad: 0
+    loss_func: 'WeightedMSELoss'   # 'WeightedBCELoss', 'BCELoss'
+    affs0_weight: 1
+    mask_weight: 0.0
+    dis_weight: 1.0
+    affinity_weight: 10.0
+    graph_node_mutual_weight: 0
+    node_weight: 0.1
+    edge_weight: 0.1
+    if_edge_relation: True
+    if_edge_discrepancy: False
+    if_node: True
+    align_node_weight: 0.05
+    align_edge_weight: 0.5
+    align_structure_weight: 0.5
+    embedding_mode: 1
+    if_verse: False
+    separate_weight: True
+    shifts: 3
+    delta_v: 0.5
+    delta_d: 1.5
+    alpha: 1
+    beta: 1
+    gama: 0.001
+    opt_type: 'adam'
+    total_iters: 300000
+    warmup_iters: 0
+    base_lr: 0.0001
+    end_lr: 0.0001
+    display_freq: 100
+    valid_freq: 1000
+    save_freq: 1000
+    decay_iters: 100000
+    weight_decay: ~
+    power: 1.5
+    batch_size: 2
+    num_workers: 2
+    if_cuda: True
+
+    random_seed: 555  # -1 is none
+
+DATA:
+    dataset_name: 'cremi-C'  # 'snemi3d-ac3', 'cremi-A', 'cremi'
+    train_split: 50
+    test_split: 25
+    data_folder: '../data'
+    padding: 50
+    shift_channels: [[-1,0,0],
+                     [0,-1,0],
+                     [0,0,-1],
+                     [-2,0,0],
+                     [0,-3,0],
+                     [0,0,-3],
+                     [-3,0,0],
+                     [0,-9,0],
+                     [0,0,-9],
+                     [-4,0,0],
+                     [0,-27,0],
+                     [0,0,-27]]
+    shift: ~
+    if_dilate: True
+    widen_way: True
+    if_scale_aug: False
+    if_filp_aug: True
+    if_rotation_aug: True
+    if_intensity_aug: True
+    if_elastic_aug: True
+
+TEST:
+    pad: 0
+    model_name: ''
