@@ -11,8 +11,7 @@ If you have a [Docker](https://www.docker.com/) environment, we strongly recomme
 docker pull registry.cn-hangzhou.aliyuncs.com/em_seg/v54_higra
 ```
 ## Pretrained Model
-The related [pretrained models](https://drive.google.com/drive/folders/1XigH3QVA1lVBcJUllcEpYonYACANisQB) are available, please refer to the testing command for evaluating.
-
+The related [pretrained models](https://drive.google.com/drive/folders/1XigH3QVA1lVBcJUllcEpYonYACANisQB) are available.
 
 ## Contact
 This repo is related to knowledge distillation, and please refer to [repo](https://github.com/weih527/Pixel-Embedded-Affinity) for network training details without KD. 
