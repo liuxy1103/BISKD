@@ -1,6 +1,7 @@
 # BISKD
 **Efficient Biomedical Instance Segmentation via Knowledge Distillation**
-*MICCAI 2023*
+*MICCAI 2022*
+
 
 ## Installaion
 This code was implemented with Pytorch 1.0.1 (later versions may work), CUDA 9.0, Python 3.7.4 and Ubuntu 16.04. 
