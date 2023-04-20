@@ -259,37 +259,7 @@ if __name__ == '__main__':
         diff.append(temp_diff)
         diff2.append(temp_diff2)
         affs_gt = batch_data['affs'].numpy()
-        if args.show_affinity:
-            for i in range(len(output_affs)):
-                aff = output_affs[i]
-                io.imsave(os.path.join(affs_img_path, '%d_aff_%06d.png' % (k, i)), aff)
-                if args.mode == 'validation':
-                    gt = affs_gt[0,i]
-                    io.imsave(os.path.join(affs_img_path, '%d_aff_gt_%06d.png' % (k, i)), gt)
 
-        if args.show:
-            if args.norm_embedding:
-                embedding = F.normalize(embedding, p=2, dim=1)
-            if args.mode == 'test':
-                if args.show_embedding:
-                    val_show_emd(k, output_affs[-args.show_num], embedding, pred_seg, gt_ins, affs_img_path)
-                    if args.show_embedding_layers:
-                        val_show_emd_layers(k, output_affs[-args.show_num], [x5, x_emb1, x_emb2, x_emb3], pred_seg,
-                                            gt_ins, affs_img_path)
-                else:
-                    val_show(k, output_affs[-args.show_num], output_affs[-args.show_num], pred_seg, gt_ins,
-                             affs_img_path)
-            else:
-                val_show_emd(k, output_affs[-args.show_num], embedding, pred_seg, gt_ins, affs_img_path)
-
-                if args.show_embedding_layers:
-                    val_show_emd_layers(k, output_affs[-args.show_num], [x5, x_emb1, x_emb2, x_emb3], pred_seg, gt_ins,
-                                        affs_img_path)
-                else:
-                    affs_gt = batch_data['affs'].numpy()[0, -args.show_num]
-                    val_show(k, output_affs[-args.show_num], affs_gt, pred_seg, gt_ins, affs_img_path)
-                # affs_gt = batch_data['affs'].numpy()[0, -args.show_num]
-                # val_show(k, output_affs[-args.show_num], affs_gt, pred_seg, gt_ins, affs_img_path)
     cost_time = time.time() - start_time
     print('Inference Cost Time:', time_total)
     epoch_loss = sum(losses_valid) / len(losses_valid)
@@ -314,26 +284,7 @@ if __name__ == '__main__':
     f.create_dataset('main', data=seg, dtype=seg.dtype, compression='gzip')
     f.close()
 
-    if args.mode == 'test':
-        seg = seg[:, 7:-7, 22:-22]
-        seg = seg.astype(np.uint8)
-        out_seg_path = os.path.join(out_affs, args.model_name + 'submission.h5')
-        example_path = '../data/A1/submission_example.h5'
-        copyfile(example_path, out_seg_path)
-        fi = ['plant003', 'plant004', 'plant009', 'plant014', 'plant019', 'plant023', 'plant025', 'plant028',
-              'plant034',
-              'plant041', 'plant056', 'plant066', 'plant074', 'plant075', 'plant081', 'plant087', 'plant093',
-              'plant095',
-              'plant097', 'plant103', 'plant111', 'plant112', 'plant117', 'plant122', 'plant125', 'plant131',
-              'plant136',
-              'plant140', 'plant150', 'plant155', 'plant157', 'plant158', 'plant160']
-        f_out = h5py.File(out_seg_path, 'r+')
-        for k, fn in enumerate(fi):
-            data = f_out['A1']
-            img = data[fn]['label'][:]
-            del data[fn]['label']
-            data[fn]['label'] = seg[k]
-        f_out.close()
+
 
     if args.save:
         affs = np.asarray(affs, dtype=np.float32)
