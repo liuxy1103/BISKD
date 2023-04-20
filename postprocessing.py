@@ -63,10 +63,3 @@ if __name__ == '__main__':
     seg_color = draw_fragments_2d(seg1)
     cv2.imwrite('./seg4.png', seg_color)
 
-    # uid, uc = np.unique(seg1, return_counts=True)
-    # print(uid)
-    # print(uc)
-    # print(sum(uc<20))
-
-    # seg_color = draw_fragments_2d(seg1)
-    # cv2.imwrite('./seg.png', seg_color)
