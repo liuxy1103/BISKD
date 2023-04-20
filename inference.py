@@ -135,7 +135,7 @@ if __name__ == '__main__':
                                 if_sigmoid=cfg.MODEL.if_sigmoid,
                                 show_feature=True).to(device)
 
-    ckpt_path = os.path.join('../models', trained_model, 'model-%06d.ckpt' % args.model_id)
+    ckpt_path = os.path.join('../models', trained_model, 'stu_KD.ckpt')
     checkpoint = torch.load(ckpt_path)
 
     new_state_dict = OrderedDict()
