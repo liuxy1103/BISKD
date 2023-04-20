@@ -279,16 +279,4 @@ if __name__ == '__main__':
     f_txt.write('\n')
     f_txt.close()
 
-    seg = np.asarray(seg, dtype=np.uint16)
-    f = h5py.File(os.path.join(out_affs, 'seg.hdf'), 'w')
-    f.create_dataset('main', data=seg, dtype=seg.dtype, compression='gzip')
-    f.close()
-
-
-
-    if args.save:
-        affs = np.asarray(affs, dtype=np.float32)
-        f = h5py.File(os.path.join(out_affs, 'affs.hdf'), 'w')
-        f.create_dataset('main', data=affs, dtype=affs.dtype, compression='gzip')
-        f.close()
 
