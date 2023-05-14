@@ -294,7 +294,9 @@ def loop(cfg, train_provider, valid_provider, model, model_T, criterion, optimiz
                 transform = nn.Conv2d(emb.shape[1], emb_T.shape[1], 1, bias=False).to(device)
                 transform.weight.data.uniform_(-0.005, 0.005)
                 emb = transform(emb)
-
+                if iters==1:
+                    print('add new params for optimizer')
+                    optimizer.add_param_group({'params': transform.parameters()})
             if emb_T.shape != emb.shape:
                 pred_tmp = embedding2affs(emb, offsets)
                 pred_T_tmp = embedding2affs(emb_T, offsets)
